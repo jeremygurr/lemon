@@ -1,0 +1,46 @@
+#!/bin/bash
+
+set -u
+
+if [[ ! -f launch ]]; then
+  err "This script must be run from within the same folder it exists in."
+  exit 1
+fi
+
+name=${1:-${name:-lemon}}
+as_root=${as_root:-f}
+LEMON_REPO=${LEMON_REPO:-$(realpath ~/p/lemon)}
+LEMON_HOME=${LEMON_HOME:-~/.lemon}
+
+if [[ ! -d $LEMON_HOME ]]; then
+  mkdir -p $LEMON_HOME || exit 1
+  cp -Rn home/ $LEMON_HOME || exit 1
+fi
+
+LEMON_HOME=$(realpath $LEMON_HOME)
+
+err() { echo "$*" >&2; }
+
+if docker ps | grep lemon >/dev/null; then
+  err "Lemon container is already running. Either stop the existing one first, or use the 'join' script to join the existing container."
+  exit 1
+fi
+
+if [[ $as_root == t ]]; then
+  uid=0
+  user=root
+else
+  uid=$UID
+  user=$USER
+fi
+
+docker run -it --rm -u $uid --name $name -e COLUMNS=$COLUMNS \
+  -v $LEMON_REPO:/lemon \
+  -v $LEMON_HOME:/home \
+  -e prompt_name="$name " \
+  -e USER=$user \
+  -e NO_PROXY= \
+  -e HTTPS_PROXY= \
+  -e HTTP_PROXY= \
+  $name 
+
