@@ -75,7 +75,6 @@ RUN apk add \
   perl-git \
   pkgconf-doc \
   procps \
-#  procps-doc \
   readline-doc \
   rsync \
   skalibs-doc \
@@ -99,7 +98,6 @@ RUN apk add \
   vim \
   vim-doc \
   yq \
-#  yq-doc \
   zlib-doc \
   $nothing
 
@@ -109,6 +107,7 @@ RUN apk add \
 
 RUN apk add \
   helix \
+  gcc \
   $nothing
 
 ENV HOME /home

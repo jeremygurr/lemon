@@ -1,6 +1,6 @@
 #!/bin/bash
 
-name=${1:-simpleton}
+name=${1:-lemon}
 
 set -x
 docker exec -it $name /bin/bash -l
