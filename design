@@ -82,10 +82,27 @@ features
       only for high level types?
     can only work if we track types at runtime
 
-
-
 64 bit word pointers, or not?
   simplicity and debugability is top priority, not memory or performance
+  [ ] 64 bit words
+      4x bigger function definitions
+      [ ] 64 bit words
+          4x bigger block definitions
+      [ ] 16 bit words
+          much smaller, but requires an additional indirection to execute a word
+          but this might be faster anyways since it's more likely to be in a cpus cache
+      [*] variable, set in code
+          support different settings by loading different interpreters
 
+indirect or direct threading
+  [ ] direct is simpler to debug
+      faster jumping
+      takes more space
+  [ ] indirect reduces space for almost every word
+      3 32 bit words saved for the simplest DOCOL
+
+implement major decisions as features that get combined
+  simpleton
+  
 hello world assembler
 

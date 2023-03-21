@@ -110,6 +110,10 @@ RUN apk add \
   gcc \
   $nothing
 
+RUN apk add \
+  make \
+  $nothing
+
 ENV HOME /home
 ENV PAGER less
 ENV LEMON_HOME /lemon
