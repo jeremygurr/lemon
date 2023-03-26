@@ -1,7 +1,7 @@
 echo "Executing shell-start.sh"
-export PATH=$SIMPLETON_REPO/bin:$PATH
+export PATH=$LEMON_HOME/bin:$PATH
 
-prompt_name=${prompt_name:-simpleton }
+prompt_name=${prompt_name:-lemon }
 NL=$'\n'
 
 alias ls='ls --color=auto'
@@ -10,7 +10,6 @@ alias ll='ls --color=auto -la'
 alias rmr='rm -rf'
 alias u='cd ..'
 alias vi=vim
-alias x=simpleton-execute
 
 # git stuff
 alias gc='git checkout'
@@ -29,6 +28,21 @@ alias gbs='git bisect start'
 alias gbg='git bisect good'
 alias gbb='git bisect bad'
 alias gr='git remote'
+
+# usage: cat file | hydrate >output
+#   will replace bash variables and expressions
+hydrate() {
+while read -r line || [ "${line:-}" ]; do
+  if [[ "$line" =~ ^\$\  ]]; then
+    eval "${line#\$ }" 
+  elif [[ "$line" =~ \$ ]]; then
+    line="${line//\"/\\\"}"
+    eval "echo \"$line\"" || return 1
+  else
+    echo "$line"
+  fi
+done
+}
 
 vigr() {
   files=$(grep -D skip -srIl "$@" *);

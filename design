@@ -106,3 +106,8 @@ implement major decisions as features that get combined
   
 hello world assembler
 
+register variables not supported
+and macros are weak
+use bash templating instead
+
+
