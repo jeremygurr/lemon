@@ -6,6 +6,7 @@ next_word_table_index:	.space 2
 
 $ word_table_reg=X21
 // word_table_reg=$word_table_reg
+
 $ at_start='ldr	$word_table_reg, =word_table' # probably need to split this
 // used at end of L0 words
 .macro NEXT
