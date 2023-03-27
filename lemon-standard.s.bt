@@ -2,18 +2,23 @@ $ psp=SP
 // parameter stack: $psp
 $ rsp=X19
 // return stack: $rsp
-$ current_word_reg=X20
-// current word being executed in a list of words: $current_word_reg
+$ next_word_reg=X20
+// current word being executed in a list of words: $next_word_reg
+$ at_start=
+
+// linux system calls
+$ grep -E '#define (__NR_brk|__NR_write|__NR_exit) ' /usr/include/asm-generic/unistd.h 
+> | awk '{ print ".set\t" $2 "," $3 }'
 
 .global _start
 
 $ cat features/indirect-threading-mag-2-words.s.bt | hydrate
 .macro PUSHRSP reg
-	str	reg, [$psp, #-8]
+	str	reg, [$rsp, #-8]
 .endm
 
 .macro POPRSP reg
-	ldr	reg, [$psp], #8
+	ldr	reg, [$rsp], #8
 .endm
 
 .text
@@ -21,13 +26,16 @@ $ cat features/indirect-threading-mag-2-words.s.bt | hydrate
 
 _start: mov	X0, #1
 	$at_start
-	ldr	X1, =helloworld
-	mov	X2, #13
+	ldr	X1, =lemon_version
+	mov	X2, #lemon_version_end-lemon_version
 	mov	X8, #64			// kernel write function
 	svc	0
+	str	$psp, [var_S0]
+	ldr	$rsp, #return_stack_top
 	mov	X0, #0
 	mov	X8, #93			// kernel exit function
 	svc	0
 
 .data
-helloworld:	.ascii "Hello World!\n"
+lemon_version:	.ascii "Lemon v0.0.0\n"
+lemon_version_end:

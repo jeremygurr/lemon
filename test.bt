@@ -1,0 +1,2 @@
+$ grep -E '#define (__NR_brk|__NR_write|__NR_exit) ' /usr/include/asm-generic/unistd.h 
+> | awk '{ print ".set\t" $2 "," $3 }'

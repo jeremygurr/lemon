@@ -112,6 +112,7 @@ RUN apk add \
 
 RUN apk add \
   make \
+  linux-headers \
   $nothing
 
 ENV HOME /home
