@@ -8,7 +8,7 @@ $ at_start=
 
 // linux system calls
 $ grep -E '#define (__NR_brk|__NR_write|__NR_exit) ' /usr/include/asm-generic/unistd.h 
-> | awk '{ print ".set\t" $2 "," $3 }'
+> | awk '{ print ".set\t" $2 "," $3 }' | sed 's/__NR_/linux_/'
 
 .global _start
 
@@ -30,8 +30,8 @@ _start: mov	X0, #1
 	mov	X2, #lemon_version_end-lemon_version
 	mov	X8, #64			// kernel write function
 	svc	0
-	str	$psp, [var_S0]
-	ldr	$rsp, #return_stack_top
+//	str	$psp, [var_S0]
+//	ldr	$rsp, #return_stack_top
 	mov	X0, #0
 	mov	X8, #93			// kernel exit function
 	svc	0

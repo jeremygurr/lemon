@@ -4,6 +4,7 @@ export PATH=$LEMON_HOME/bin:$PATH
 prompt_name=${prompt_name:-lemon }
 NL=$'\n'
 
+alias sp='source /etc/profile'
 alias ls='ls --color=auto'
 alias l='ls --color=auto -l'
 alias ll='ls --color=auto -la'
@@ -32,8 +33,9 @@ alias gr='git remote'
 # usage: cat file | hydrate >output
 #   will replace bash variables and expressions
 hydrate() {
-local to_execute=
+local to_execute= OIFS=$IFS IFS=$NL
 while read -r line || [ "${line:-}" ]; do
+  IFS=$OIFS
   if [[ "$line" =~ ^\$\  ]]; then
     hydrate_execute || return 1
     to_execute="${line#\$ }" 
@@ -49,6 +51,7 @@ while read -r line || [ "${line:-}" ]; do
     hydrate_execute || return 1
     echo "$line"
   fi
+  IFS=$NL
 done
 hydrate_execute || return 1
 }
