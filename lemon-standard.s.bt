@@ -7,35 +7,81 @@ $ next_word_reg=X20
 $ at_start=
 
 // linux system calls
-$ grep -E '#define (__NR_brk|__NR_write|__NR_exit) ' /usr/include/asm-generic/unistd.h 
+$ grep -E '#define (__NR_brk|__NR_write|__NR_exit) ' 
+> /usr/include/asm-generic/unistd.h 
 > | awk '{ print ".set\t" $2 "," $3 }' | sed 's/__NR_/linux_/'
 
-.global _start
+	.global _start
 
 $ cat features/indirect-threading-mag-2-words.s.bt | hydrate
-.macro PUSHRSP reg
+	.macro PUSHRSP reg
 	str	reg, [$rsp, #-8]
-.endm
+	.endm
 
-.macro POPRSP reg
+	.macro POPRSP reg
 	ldr	reg, [$rsp], #8
-.endm
+	.endm
 
-.text
-.align	4
+	.text
+	.align	4
 
 _start: mov	X0, #1
 	$at_start
+
 	ldr	X1, =lemon_version
 	mov	X2, #lemon_version_end-lemon_version
-	mov	X8, #64			// kernel write function
-	svc	0
-//	str	$psp, [var_S0]
-//	ldr	$rsp, #return_stack_top
-	mov	X0, #0
-	mov	X8, #93			// kernel exit function
+	mov	X8, #linux_write
 	svc	0
 
-.data
-lemon_version:	.ascii "Lemon v0.0.0\n"
+	str	$psp, [var_S0]
+	ldr	$rsp, #return_stack_top
+	bl	set_up_data_segment
+	ldr	$next_word_reg, #cold_start
+	NEXT
+	// should never reach this line
+
+	mov	X0, #0
+	mov	X8, #linux_exit
+	svc	0
+
+	.data
+lemon_version:	
+	.ascii	"Lemon v0.0.0\n"
 lemon_version_end:
+cold_start:
+	.int	QUIT
+
+        .text
+        .set	INITIAL_DATA_SEGMENT_SIZE,65536
+set_up_data_segment:
+        mov	X0, XZR
+        mov	X8, #linux_brk
+	svc	0
+	// Initialise HERE to point at beginning of data segment.
+        str	X0, [var_HERE]
+	// Reserve nn bytes of memory for initial data segment.
+        add	X0, X0, #INITIAL_DATA_SEGMENT_SIZE
+	// Call brk(HERE+INITIAL_DATA_SEGMENT_SIZE)
+        mov	X8, #linux_brk
+	svc	0
+        ret
+
+/*
+        We allocate static buffers for the return static and input buffer (used when
+        reading in files and text that the user types in).
+*/
+        .set	RETURN_STACK_SIZE,8192
+        .set	BUFFER_SIZE,4096
+
+        .bss
+        .align	4096
+return_stack:
+        .space	RETURN_STACK_SIZE
+// Initial top of return stack.
+return_stack_top:
+
+/* This is used as a temporary input buffer when reading from files or the terminal. */
+        .align	4096
+buffer:
+        .space	BUFFER_SIZE
+

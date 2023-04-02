@@ -1,25 +1,27 @@
 // this table translates 16 bit word indexes into 64 bit pointers to the word definition
-.bss
-.align 	8
-word_table:		.space 256*256*8
-next_word_table_index:	.space 2
+	.bss
+	.align 	8
+word_table:		
+	.space 256*256*8
+next_word_table_index:	
+	.space 2
 
 $ word_table_reg=X21
 // word_table_reg=$word_table_reg
 
-$ at_start+='ldr	$word_table_reg, =word_table'$NL 
+$ at_start+='ldr	$word_table_reg, #word_table'$NL 
 // used at end of L0 words
-.macro NEXT
+	.macro NEXT
 	ldrh	X0, [next_word_reg], #2 // doubt it supports post indexing
 	add	X0, $word_table_reg, X0, lsl #3
 	br	X0
-.endm
+	.endm
 
-.macro DOCOL3
+	.macro DOCOL3
 	PUSHRSP	$next_word_reg
 	// X0 is pointing to codeword
 	add	$next_word_reg, X0, #8
 	// next_word_reg is pointing to first word after codeword
 	NEXT
-.endm
+	.endm
 
