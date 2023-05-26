@@ -164,6 +164,26 @@ alias short='cut -c -160'
 alias short2='cut -c -320'
 alias short3='cut -c -640'
 
+# usage: echo -e "\n\n blah  \n\n" | trim_newlines
+# will trim empty lines from beginning and end of given string
+# will leave exactly one trailing newline at the end
+trim_nl() {
+  local block
+  read -r -d '' block
+  block=${block##*($NL)}
+  block=${block%%*($NL)}
+  echo "$block"
+}
+
+# returns byte_count which is the count of the bytes in the input string
+# not the character count
+get_byte_count() {
+local old=$LANG s=$1
+LANG=C
+byte_count=${#s}
+LANG=$old
+}
+
 set -o vi
 set +H
 export SHELL="/bin/bash"

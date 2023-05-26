@@ -51,8 +51,68 @@ lemon_version_end:
 cold_start:
 	.int	QUIT
 
-        .text
-        .set	INITIAL_DATA_SEGMENT_SIZE,65536
+	.set	F_IMMED,0x80
+	.set	F_HIDDEN,0x20
+
+	// Store the chain of links.
+	.set 	link,0
+	        
+// L0 word definition: raw assembly code
+// example: name=DUP flags=F_IMMED label=DUP defword0
+$ defword0() {
+> local label=${label:-$name}
+> local flags=${flags:-0}
+> local byte_count
+> get_byte_count "$name"
+> echo "
+> 	.section	.rodata
+> 	.align	8
+> 	.globl	name_$label
+> name_$label :
+> 	.int	link
+> 	.set	link,name_$label
+> 	.byte	$flags
+> 	.byte	$byte_count
+> 	.ascii	"$name"
+> 	.align	8
+> 	.globl	$label
+> $label :
+> 	// codeword - the interpreter
+> 	.int	code_$label
+> 	.text
+> 	.globl	code_$label
+> code_$label :
+> " | hydrate | trim_nl
+> }
+
+// L1 word definition
+// example: name=DUP flags=F_IMMED label=DUP defword1
+$ defword1() {
+> local label=${label:-$name}
+> local flags=${flags:-0}
+> local byte_count
+> get_byte_count "$name"
+> echo "
+> 	.section	.rodata
+> 	.align	8
+> 	.globl	name_$label
+> name_$label :
+> 	.int	link
+> 	.set	link,name_$label
+> 	.byte	$flags
+> 	.byte	$byte_count
+> 	.ascii	"$name"
+> 	.align	8
+> 	.globl	$label
+> $label :
+> 	// codeword - the interpreter
+> 	.int	DOCOL3
+> " | hydrate | trim_nl
+> }
+
+	.text
+	.set	INITIAL_DATA_SEGMENT_SIZE,65536
+
 set_up_data_segment:
         mov	X0, XZR
         mov	X8, #linux_brk

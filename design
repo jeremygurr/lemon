@@ -85,29 +85,68 @@ features
 64 bit word pointers, or not?
   simplicity and debugability is top priority, not memory or performance
   [ ] 64 bit words
-      4x bigger function definitions
-      [ ] 64 bit words
-          4x bigger block definitions
-      [ ] 16 bit words
-          much smaller, but requires an additional indirection to execute a word
-          but this might be faster anyways since it's more likely to be in a cpus cache
-      [*] variable, set in code
-          support different settings by loading different interpreters
+      4x bigger block definitions
+  [ ] 16 bit words
+      much smaller, but requires an additional indirection to execute a word
+      but this might be faster anyways since it's more likely to be in a cpus cache
+  [*] variable, set in code
+      support different settings by loading different interpreters
 
 indirect or direct threading
   [ ] direct is simpler to debug
       faster jumping
       takes more space
-  [ ] indirect reduces space for almost every word
+  [*] indirect reduces space for almost every word
       3 32 bit words saved for the simplest DOCOL
-
-implement major decisions as features that get combined
-  simpleton
-  
-hello world assembler
 
 register variables not supported
 and macros are weak
 use bash templating instead
 
+word design:
+  16 bit word index >word_table> 64 bit word address >
+    back link (pointer to previous word)
+    forward link (pointer to next word)
+    flags (1 byte)
+    parsing word
+    decompile word
+    length (1 byte)
+    name (1-256 bytes)
+    pad (0-7 bytes)
+    codeword 
+    16 bit words
+    pad (0-7 bytes)
+
+better decompiling support
+  since words can contain meta words and not original source
+  how to match source with compiled
+    reverse compile words
+    LIT 0 -> 0
+    words will have a reverse compile option to handle this process
+
+decompiling philosophy:
+  will not store source
+  target code should be the source
+  must make target code very easy to understand and navigate to make up for missing source code
+  no comments
+  example:
+    inlining another word
+    we want to be able to see that the word was inlined, and want to be able to have a modification to that word also modify the places which were inlined
+      to do this, we'd need to track where it came from
+
+get basic forth language working
+  conditionals
+    if / elif / else / fi
+    for / done # combine with while and until?
+
+implement type handling
+
+implement omni debugging 
+
+implement regex words
+  interpreting word points to code that parses the word
+
+hello world assembler
+
+simple editor
 

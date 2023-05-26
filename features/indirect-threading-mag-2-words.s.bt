@@ -12,7 +12,8 @@ $ word_table_reg=X21
 $ at_start+='ldr	$word_table_reg, #word_table'$NL 
 // used at end of L0 words
 	.macro NEXT
-	ldrh	X0, [next_word_reg], #2 // doubt it supports post indexing
+	// doubt it supports post indexing
+	ldrh	X0, [$next_word_reg], #2
 	add	X0, $word_table_reg, X0, lsl #3
 	br	X0
 	.endm
