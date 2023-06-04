@@ -1,7 +1,10 @@
 echo "Executing shell-start.sh"
-export PATH=$LEMON_HOME/bin:$PATH
 
-prompt_name=${prompt_name:-lemon }
+if [[ "${ADD_PATH:-}" ]]; then
+  export PATH=$ADD_PATH:$PATH
+fi
+
+prompt_name=${prompt_name:-}
 NL=$'\n'
 
 alias sp='source /etc/profile'
@@ -10,7 +13,12 @@ alias l='ls --color=auto -l'
 alias ll='ls --color=auto -la'
 alias rmr='rm -rf'
 alias u='cd ..'
+alias uu='cd ../..'
+alias uuu='cd ../../..'
 alias vi=vim
+
+alias up='cell update'
+alias clean='cell clean'
 
 # git stuff
 alias gc='git checkout'
@@ -63,6 +71,49 @@ if [[ "$to_execute" ]]; then
   to_execute=
 fi
 return 0
+}
+
+# usage: echo -e "\n\n blah  \n\n" | trim_newlines
+# will trim empty lines from beginning and end of given string
+# will leave exactly one trailing newline at the end
+trim_nl() {
+  local block
+  read -r -d '' block
+  block=${block##*($NL)}
+  block=${block%%*($NL)}
+  echo "$block"
+}
+
+# returns byte_count which is the count of the bytes in the input string
+# not the character count
+get_byte_count() {
+local old=$LANG s=$1
+LANG=C
+byte_count=${#s}
+LANG=$old
+}
+
+real() {
+cd $(realpath .)
+}
+
+# this unlinks a linked file by copying what it links to locally
+unset localize
+localize() {
+for file in $* ; do
+  dirOfFile=`dirname $file`
+  fileName=`basename $file`
+  cd "$dirOfFile"
+  description=`file $fileName`
+  target=`echo $description | grep "symbolic link" | sed "s/.*symbolic link to \(.*\)/\1/" | sed "s/'//g" | sed "s/\\\`//g"`
+# echo "Target: $target"
+  if [ ! -z "$target" ]; then
+    rm "$fileName"
+    cp -R -a -p "${target}" "${fileName}"
+  else
+    echo "$file is not a symbolic link."
+  fi
+done
 }
 
 vigr() {
@@ -164,31 +215,56 @@ alias short='cut -c -160'
 alias short2='cut -c -320'
 alias short3='cut -c -640'
 
-# usage: echo -e "\n\n blah  \n\n" | trim_newlines
-# will trim empty lines from beginning and end of given string
-# will leave exactly one trailing newline at the end
-trim_nl() {
-  local block
-  read -r -d '' block
-  block=${block##*($NL)}
-  block=${block%%*($NL)}
-  echo "$block"
-}
-
-# returns byte_count which is the count of the bytes in the input string
-# not the character count
-get_byte_count() {
-local old=$LANG s=$1
-LANG=C
-byte_count=${#s}
-LANG=$old
-}
-
 set -o vi
 set +H
 export SHELL="/bin/bash"
 export LS_OPTIONS='--color=auto'
 export EDITOR=vim
+
+leaf() {
+while true; do
+  local last_part=${PWD##*/}
+  if [[ -d .dim ]]; then
+    cd .dim || return 1
+  elif [[ "$last_part" == .dim ]]; then
+    if [[ "${1:-}" && -d "$1" ]]; then
+      cd "$1" || return 1
+      shift || true
+    else
+      local files=( $(find -mindepth 1 -maxdepth 1 -type d -not -name ".*") )
+      if [[ -d "$files/.dim" ]]; then
+        cd $files/.dim || return 1
+      elif [[ -d "$files/.dna" ]]; then
+        cd $files || return 1
+        break
+      else
+        break
+      fi
+    fi
+  fi
+done
+return 0
+}
+
+trunk() {
+while true; do
+  local last=${PWD##*/}
+  local parent=${PWD%/*}
+  parent=${parent##*/}
+  if [[ ${#PWD} -lt 2 ]]; then
+    break
+  fi
+  if [[ "$last" == .dim || "$last" == .dna ]]; then
+    cd .. || return 1
+  elif [[ "$PWD" == */.dim/* ]]; then
+    cd ${PWD%%/.dim/*} || return 1
+  elif [[ "$PWD" == */.dna/* ]]; then
+    cd ${PWD%%/.dna/*} || return 1
+  else
+    break
+  fi
+done
+}
 
 unset parse_git_branch
 parse_git_branch() {
@@ -226,13 +302,22 @@ local rc=$?
 [[ $rc > 0 ]] && echo -n "err $rc "
 }
 
+short_path() {
+local p=$PWD
+if [[ "$p" == /*/*/*/* ]]; then
+  p=${PWD%/*/*/*}
+  p=${PWD#$p/}
+fi
+echo -n "$p"
+}
+
 big_prompt() {
 if [ ! "$BASH" ]; then
   return 0
 fi
 
 export PS1="| ${RED}\$(prompt_error_string)${LIGHT_GREEN}\$prompt_name$PURPLE\u $LIGHT_BLUE\d \A $CYAN\$(custom_prompt_status 2>/dev/null)$NO_COLOUR
-| $LIGHT_RED\W $LIGHT_PURPLE\$(parse_git_branch 2>/dev/null)$NO_COLOUR\\\$ "
+| $LIGHT_RED\$(short_path) $LIGHT_PURPLE\$(parse_git_branch 2>/dev/null)$NO_COLOUR\\\$ "
 export PS2='> '
 export PS4='+ '
 }
