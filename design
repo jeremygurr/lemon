@@ -24,7 +24,7 @@ features
       r0 1 byte length raw (not escaped) string
       x0 1 byte length regex string
       t2 4 byte float seconds (seconds since 1970)
-      t3 8 byte float seconds (seconds since 1970)
+      t3 8 byte float nano seconds (seconds since 1970)
       o0 1 byte generic object (matches any 1 byte type)
       p2 4 byte pointer
       p3 8 byte pointer
