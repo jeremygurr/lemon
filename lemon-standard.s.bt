@@ -9,11 +9,11 @@ $ at_start=
 // linux system calls
 $ grep -E '#define (__NR_brk|__NR_write|__NR_exit) ' 
 > /usr/include/asm-generic/unistd.h 
-> | awk '{ print ".set\t" $2 "," $3 }' | sed 's/__NR_/linux_/'
+> | awk '{ print "\t.set\t" $2 "," $3 }' | sed 's/__NR_/linux_/'
 
 	.global _start
 
-$ cat features/indirect-threading-mag-2-words.s.bt | hydrate
+$ hydrate <features/indirect-threading-mag-2-words.s.bt 
 	.macro PUSHRSP reg
 	str	reg, [$rsp, #-8]
 	.endm
@@ -57,58 +57,58 @@ cold_start:
 	// Store the chain of links.
 	.set 	link,0
 	        
-// L0 word definition: raw assembly code
-// example: name=DUP flags=F_IMMED label=DUP defword0
+# L0 word definition: raw assembly code
+# example: name=DUP flags=F_IMMED label=DUP defword0
 $ defword0() {
-> local label=${label:-$name}
-> local flags=${flags:-0}
-> local byte_count
-> get_byte_count "$name"
-> echo "
-> 	.section	.rodata
-> 	.align	8
-> 	.globl	name_$label
-> name_$label :
-> 	.int	link
-> 	.set	link,name_$label
-> 	.byte	$flags
-> 	.byte	$byte_count
-> 	.ascii	"$name"
-> 	.align	8
-> 	.globl	$label
-> $label :
-> 	// codeword - the interpreter
-> 	.int	code_$label
-> 	.text
-> 	.globl	code_$label
-> code_$label :
-> " | hydrate | trim_nl
-> }
++ local label=${label:-$name}
++ local flags=${flags:-0}
++ local byte_count
++ get_byte_count "$name"
++ echo "
++ 	.section	.rodata
++ 	.align	8
++ 	.globl	name_$label
++ name_$label :
++ 	.int	link
++ 	.set	link,name_$label
++ 	.byte	$flags
++ 	.byte	$byte_count
++ 	.ascii	"$name"
++ 	.align	8
++ 	.globl	$label
++ $label :
++ 	// codeword - the interpreter
++ 	.int	code_$label
++ 	.text
++ 	.globl	code_$label
++ code_$label :
++ " | hydrate | trim_nl
++ }
 
 // L1 word definition
 // example: name=DUP flags=F_IMMED label=DUP defword1
 $ defword1() {
-> local label=${label:-$name}
-> local flags=${flags:-0}
-> local byte_count
-> get_byte_count "$name"
-> echo "
-> 	.section	.rodata
-> 	.align	8
-> 	.globl	name_$label
-> name_$label :
-> 	.int	link
-> 	.set	link,name_$label
-> 	.byte	$flags
-> 	.byte	$byte_count
-> 	.ascii	"$name"
-> 	.align	8
-> 	.globl	$label
-> $label :
-> 	// codeword - the interpreter
-> 	.int	DOCOL3
-> " | hydrate | trim_nl
-> }
++ local label=${label:-$name}
++ local flags=${flags:-0}
++ local byte_count
++ get_byte_count "$name"
++ echo "
++ 	.section	.rodata
++ 	.align	8
++ 	.globl	name_$label
++ name_$label :
++ 	.int	link
++ 	.set	link,name_$label
++ 	.byte	$flags
++ 	.byte	$byte_count
++ 	.ascii	"$name"
++ 	.align	8
++ 	.globl	$label
++ $label :
++ 	// codeword - the interpreter
++ 	.int	DOCOL3
++ " | hydrate | trim_nl
++ }
 
 	.text
 	.set	INITIAL_DATA_SEGMENT_SIZE,65536

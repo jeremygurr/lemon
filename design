@@ -1,152 +1,29 @@
-features
-  simple type system and word overloading based on types
-    fixed input count for a single word definition
-    types are locked to specific names
-    simple types
-      i0 1 byte signed int 
-      i1 2 byte signed int
-      i2 4 byte signed int
-      i3 8 byte signed int
-      i4 16 byte signed int
-      u0 1 byte unsigned int
-      u1 2 byte unsigned int
-      f2 4 byte float
-      f3 8 byte float
-      f4 16 byte float
-      c0 1 byte char
-      c1 2 byte char
-      c2 4 byte char
-      c3 8 byte char
-      sn null terminated string
-      s0 1 byte length standard escaped string
-      s1 2 byte length string
-      s2 4 byte length string
-      r0 1 byte length raw (not escaped) string
-      x0 1 byte length regex string
-      t2 4 byte float seconds (seconds since 1970)
-      t3 8 byte float nano seconds (seconds since 1970)
-      o0 1 byte generic object (matches any 1 byte type)
-      p2 4 byte pointer
-      p3 8 byte pointer
-      a0i1 1 byte array of i1s
-      ms0i1 map from s0 to i1
-      h4 pointer to high level type / instance
-    word name 
-      i0__+
-    types can inherit from other types
-      i1 <- a1
-  omniscient debugging natively supported
-  word levels
-    L0 asm
-    L1 low sentence
-    L2 high sentence
-  standard string type
-    includes escapes \
-    allows newlines
-    includes substitutions of variables ${var}
-      works with any expression, takes top of stack for result
-  comments
-    either // or /* */
-  special compiler syntax
-    literals
-      "hello world"     // string
-      ^s0 "hello"       // can also derive type from stack type spec
-      "hi"              // s0 is default type for literals
-      """hi"""          // can use triple quotes also
-      'hi'              // can use single quotes as alternative
-      '''hi'''          // or triple
-      "hi"'"'           // can fuse together multiple literals
-      42                // unidentified words that match integers become int literals
-      ^i2 42            // size usually comes from type definition
-      0x1E              // hex (from multi-words)
-      0b10111           // binary
-    type casting / definition
-      (i1 i1)           // means top of stack has two ints
-      ^i1               // means next word produces an i1
-      ^(i2 i2)          // means next word produces two i2s
-  word definition
-    // L3 word: recorded
-    : double(i2 -> i2) dup + ;  
-    :: L2 word ;;     // restores heap and dictionary on exit
-    ::: L1 word ;;;   // minimal lemon word
-    :::: L0 word ;;;; // asm word
-  scoped variables
-    defining a word inside of a word?
-    return should revert dictionary 
-      but we don't want to add the extra overhead for every word call?
-      affect only higher level words
-      each word must have a level, and can't call higher levels
-      only L2 and L3 words revert
-  polymorphism
-    runtime type checking?
-      only for high level types?
-    can only work if we track types at runtime
+Must keep it ultra simple
 
-64 bit word pointers, or not?
-  simplicity and debugability is top priority, not memory or performance
-  [ ] 64 bit words
-      4x bigger block definitions
-  [ ] 16 bit words
-      much smaller, but requires an additional indirection to execute a word
-      but this might be faster anyways since it's more likely to be in a cpus cache
-  [*] variable, set in code
-      support different settings by loading different interpreters
+low level words are simple
+high level words support omni-debugging
 
-indirect or direct threading
-  [ ] direct is simpler to debug
-      faster jumping
-      takes more space
-  [*] indirect reduces space for almost every word
-      3 32 bit words saved for the simplest DOCOL
+16 bit words
+  indexed table into 64 bit pointers
 
-register variables not supported
-and macros are weak
-use bash templating instead
+8 bit characters only
+  formatting characters separate from display characters
+  order
+    numbers
+    capitol letter
+    lower letter
+    punctuation
+    math
+    boundaries
 
-word design:
-  16 bit word index >word_table> 64 bit word address >
-    back link (pointer to previous word)
-    forward link (pointer to next word)
-    flags (1 byte)
-    parsing word
-    decompile word
-    length (1 byte)
-    name (1-256 bytes)
-    pad (0-7 bytes)
-    codeword 
-    16 bit words
-    pad (0-7 bytes)
+as concise as shell scripting if possible
+  env=e2
+  escapes allowed
+  quotes only needed as an alternative to escaped special characters
 
-better decompiling support
-  since words can contain meta words and not original source
-  how to match source with compiled
-    reverse compile words
-    LIT 0 -> 0
-    words will have a reverse compile option to handle this process
-
-decompiling philosophy:
-  will not store source
-  target code should be the source
-  must make target code very easy to understand and navigate to make up for missing source code
-  no comments
-  example:
-    inlining another word
-    we want to be able to see that the word was inlined, and want to be able to have a modification to that word also modify the places which were inlined
-      to do this, we'd need to track where it came from
-
-get basic forth language working
-  conditionals
-    if / elif / else / fi
-    for / done # combine with while and until?
-
-implement type handling
-
-implement omni debugging 
-
-implement regex words
-  interpreting word points to code that parses the word
-
-hello world assembler
-
-simple editor
+blocks
+  {} code
+  [] array of data
+  ${} var
+  $() output of command
 
